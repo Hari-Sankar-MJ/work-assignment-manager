@@ -10,12 +10,12 @@ The ongoing learning history and handover context are in [LEARNING_LOG.md](LEARN
 
 ## Current status
 
-The React client is running locally and renders a static list of sample work assignments. It currently has no backend, database, authentication, or API calls; those will be added incrementally.
+The React client is running locally with MUI and supports local-only assignment creation, assignee selection, completion, filtering, and date formatting. It currently has no backend, database, authentication, or API calls; those will be added incrementally.
 
 ## Planned stack
 
 - Frontend: React, TypeScript, Vite, ESLint, and Material UI
-- Frontend patterns to learn: React Router, Axios, React Query, Jotai, and i18next
+- Frontend patterns to learn: sound feature-oriented project structure, React Router, Axios, TanStack Query (formerly React Query), Jotai, Redux Toolkit, and i18next
 - Backend: .NET Azure Functions (isolated worker) and EF Core
 - Data: SQLite locally first, with the option to move to SQL Server
 - Integration: HTTP APIs, webhooks, and later Azure Service Bus

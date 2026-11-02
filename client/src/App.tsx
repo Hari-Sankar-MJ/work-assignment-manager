@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Assignment } from './types/assignment'
 import AssignmentListItem from './components/AssignmentListItem'
 import Container from '@mui/material/Container'
@@ -31,9 +31,23 @@ const initialAssignments: Assignment[] = [
   }
 ]
 
+function loadAssignments() {
+  const localAssignments = localStorage.getItem('assignments')
+  try{
+    return localAssignments ? JSON.parse(localAssignments) : initialAssignments
+  }
+  catch (error) {
+    console.error("Failed to load assignments from localStorage", error)
+  }
+  return initialAssignments
+}
+
 function App() {
   const [showCompleted, setShowCompleted] = useState(true)
-  const [assignments, setAssignments] = useState<Assignment[]>(initialAssignments)
+  const [assignments, setAssignments] = useState<Assignment[]>(loadAssignments)
+  useEffect(() => {
+    localStorage.setItem('assignments', JSON.stringify(assignments))
+  }, [assignments])
   const visibleAssignments = showCompleted ? assignments : assignments.filter(assignment => assignment.status !== "Completed")
   
   function handleAddAssignment(title: string, assignee: string) {
