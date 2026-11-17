@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import type { Assignment } from '../types/assignment'
-import AssignmentListItem from '../components/AssignmentListItem'
+import type { Assignment } from '../features/assignments/types/assignment'
+import AssignmentListItem from '../features/assignments/components/AssignmentListItem'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
-import AssignmentForm from '../components/AssignmentForm'
+import AssignmentForm from '../features/assignments/components/AssignmentForm'
 
 const initialAssignments: Assignment[] = [
   {
