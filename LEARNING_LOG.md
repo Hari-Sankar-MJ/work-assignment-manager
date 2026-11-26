@@ -1,147 +1,211 @@
 # Learning Log and AI Handover
 
-This document is the durable context for continuing the project. A new AI assistant should read it before proposing or changing anything. Keep it current whenever a meaningful milestone, decision, or next step changes.
+This document is the durable handoff for this repository. A new AI assistant must read it fully, then inspect `git status` and recent commits, before proposing work. Keep it current after every meaningful milestone, decision, or change to the next task.
 
 ## Project purpose
 
-This repository is a deliberately small **Work Assignment Manager** used to learn React through manual implementation. It is inspired by the local WorkAssignment repositories, but is not intended to reproduce their scope or business integrations.
+This repository is a deliberately small **Work Assignment Manager** used to learn modern React through manual implementation. It is inspired by the local WorkAssignment repositories, but is not intended to reproduce their business scope, code structure, integrations, or company branding.
 
-The planned application will let a user view work assignments, assign people, change assignment status, and eventually receive backend webhook updates.
+The planned application lets a user view work assignments, assign people, change assignment status, and eventually receive backend webhook updates.
 
-## Learning contract
+## Non-negotiable learning contract
 
-- The project owner writes application code manually, rather than copy-pasting large AI-generated solutions.
-- The AI teaches one small concept or task at a time, explains why it exists, and reviews the user's work read-only unless explicitly asked to edit a file.
-- Prefer questions, small implementation objectives, and explanations over completing features for the user.
-- The user explicitly authorized the AI to maintain this README and this learning log; do not assume permission to edit application code.
-- Keep explanations accessible to someone familiar with C# and MAUI but new to React.
+- The project owner writes application code manually. Do not replace that learning process with large copy-paste solutions.
+- Teach one small concept or task at a time. Before introducing a new React primitive, library, or unfamiliar syntax, explain its purpose, data flow, syntax, alternatives, and why it is appropriate here.
+- Review the user's changes read-only unless the user explicitly asks the AI to edit a file. The user has explicitly authorised maintenance of this README and this learning log.
+- Explain at a level suitable for someone familiar with C# and MAUI but new to React.
+- When a request is complete, update this log and README if the project status, decisions, roadmap, or handoff instructions materially changed. **Do this proactively before recommending a milestone commit; never wait for the user to ask for the update.** Include a dated session entry at the bottom.
+- Prefer precise, small implementation objectives over abstract advice. Verify with `npm run lint`, `npx tsc -b`, and relevant UI checks where appropriate.
 
-## Reference repositories and target alignment
+## Required new-chat routine
 
-The local repositories inspected for alignment were:
+1. Read `README.md` and this file in full.
+2. Run `git status --short`, inspect recent commits, and inspect the files relevant to the active milestone.
+3. Confirm the current task before changing anything. Preserve user changes and do not reset, discard, or overwrite them.
+4. Teach and review first; do not edit application code unless directly authorised.
+5. Before recommending the milestone commit, proactively record what changed, what was verified, key decisions, and the exact next task in this document. Do not wait for a user reminder.
+
+## Reference repositories and alignment
+
+Local reference repositories:
 
 - `C:\repos\WorkAssignmentReact`
 - `C:\repos\WorkAssignmentFunction`
 
-Relevant WorkAssignment frontend patterns include React, TypeScript, MUI, React Router, Axios, React Query, Jotai, i18next, and Azure MSAL. Its backend is a .NET 8 Azure Functions isolated-worker application with EF Core, SQL Server, HTTP triggers, Service Bus, and a layered `Core` / `Application` / `Infrastructure` / `Functions` structure.
+WorkAssignmentReact uses React, TypeScript, Material UI, React Router, Axios, old React Query (`react-query`), Jotai, i18next, MSAL, MUI X Pro controls, and a dense work-management UI. WorkAssignmentFunction is a .NET 8 Azure Functions isolated-worker backend using EF Core, SQL Server, HTTP triggers, Service Bus, and a layered `Core` / `Application` / `Infrastructure` / `Functions` architecture.
 
-This learning project uses modern Vite rather than the Create React App setup in WorkAssignment. The core React and architectural patterns remain transferable. WorkAssignment is a reference for technologies encountered at work, not a model for project structure or React design; prefer modern, clear, feature-oriented patterns in this repository.
+This project intentionally uses modern Vite and current libraries instead of copying the older Create React App/React Query setup. WorkAssignment is a technology and visual-pattern reference, **not** an architectural model. Prefer clear feature-oriented boundaries and small, explainable components here.
 
-## Current technology and project state
+## Current technology
 
 ### Frontend
 
 - Location: `client/`
-- Created with Vite using the `react-ts` template.
-- Current runtime: React 19, TypeScript, Vite 8, ESLint, MUI, and Emotion.
-- Development server: `npm run dev` from `client/`.
-- Linter: `npm run lint` from `client/`.
-- MUI is installed and a dark MUI theme with `ThemeProvider` and `CssBaseline` is active.
-- No backend has been created.
+- Runtime: React 19, TypeScript 6, Vite 8, ESLint, MUI 9/Emotion, React Router 8, and Jotai 3.
+- Run development server: `npm run dev` from `client/`.
+- Lint: `npm run lint` from `client/`.
+- Type check: `npx tsc -b` from `client/`.
+- MUI dark theme, `ThemeProvider`, and `CssBaseline` are active.
+- No backend, API calls, database, authentication, or server state exist yet.
 
 ### Current source structure
 
 ```text
 client/src/
-  components/
-    AssignmentForm.tsx
-    AssignmentListItem.tsx
-  types/
-    assignment.ts
-  utilities/
-    formatDate.ts
-  App.tsx
-  main.tsx
+  App.tsx                         # route tree only
+  main.tsx                        # React root, MUI providers, BrowserRouter
   theme.ts
-```
-
-`App.tsx` holds the local `assignments` state, derives the filtered list, and owns assignment creation and completion updates. `AssignmentListItem.tsx` renders one typed assignment and requests completion through a callback prop. `AssignmentForm.tsx` owns temporary title and assignee input state, then passes submitted values upward through a callback prop.
-
-`types/assignment.ts` contains:
-
-- `Assignment`, the assignment data shape.
-- `Status`, a string-union type allowing only `Pending`, `In Progress`, or `Completed`.
-
-The sample data is intentionally local for now. It will later move behind an API/query layer.
-
-## State and data-management curriculum
-
-Teach these concerns separately. Do not use one library as a default answer for every kind of state.
-
-| Concern | First choice | Later tools and rationale |
-| --- | --- | --- |
-| Component-local UI state | `useState` | State used only by one component or its close descendants, such as an input's current value. |
-| Shared client/UI state | Lift state to the nearest common parent, then consider Context | Jotai for small, independent, broadly shared client-state atoms; Redux Toolkit for large or highly coordinated global client state with explicit actions, reducers, predictable transitions, and DevTools. Redux is not automatically required merely because two components share data. |
-| Server state | TanStack Query | Cached API data, loading/error states, refetching, mutations, invalidation, and optimistic updates. Do not duplicate ordinary server/API data into Jotai or Redux by default. |
-| HTTP transport | Native `fetch` first, then Axios | Learn both. Use `fetch` when browser-native primitives are sufficient; use Axios where its client instance, interceptors, request/response transforms, and consistent error handling materially help. |
-
-TanStack Query is the current name of the library previously called React Query. WorkAssignment uses the older `react-query` package; this project should learn and use current TanStack Query patterns when API work begins.
-
-## Target frontend structure
-
-As features grow, move from the current small `components/` layout to a feature-oriented structure such as:
-
-```text
-src/
-  app/                 # app-wide providers, routing, theme, configuration
+  layouts/
+    AppLayout.tsx                 # shared AppBar, navigation, Jotai assignment count, Outlet
+  pages/
+    AssignmentsPage.tsx           # URL-facing assignments screen
+    AboutPage.tsx
+    NotFoundPage.tsx
   features/
     assignments/
-      api/             # Axios/fetch calls and TanStack Query hooks
-      components/      # assignment-specific UI
-      types/           # feature models and DTOs
-      hooks/           # feature-specific client hooks
-  shared/              # reusable UI and utilities with no feature ownership
+      components/
+        AssignmentForm.tsx
+        AssignmentListItem.tsx
+      state/
+        AssignmentsAtom.ts        # persisted shared assignment atom
+      types/
+        assignment.ts
+      utilities/
+        formatDate.ts
 ```
 
-Do not create empty folders pre-emptively. Introduce each layer only when a concrete feature needs it, explaining its boundary and responsibility first.
+### Current routing
 
-## Concepts covered so far
+- `main.tsx` wraps the app in `BrowserRouter` inside the MUI theme provider.
+- `App.tsx` defines a pathless layout route using `AppLayout` and nested routes:
+  - `/assignments` → `AssignmentsPage`
+  - `/about` → `AboutPage`
+  - `/` → redirects to `/assignments` using `Navigate` with `replace`
+  - `*` → `NotFoundPage`
+- `AppLayout` uses `Outlet` to render the matching child page. It uses `Link` for navigation and `useLocation` to give the active navigation button a bold style.
 
-1. Created and cloned the GitHub repository.
-2. Generated a React + TypeScript Vite client.
-3. Chose ESLint over Oxlint for broad ecosystem support and closer alignment with WorkAssignment.
-4. Learned the Vite execution path: `index.html` loads `src/main.tsx`, which renders `<App />` into `<div id="root">`.
-5. Learned the purpose of `src/`, `public/`, Vite configuration, TypeScript configuration, ESLint configuration, and npm lock files.
-6. Replaced the Vite starter UI with a simple work-assignment page.
-7. Defined TypeScript models and used a string-union `Status` type.
-8. Rendered an array with `assignments.map(...)` and used `key={assignment.id}` at the list-creation site.
-9. Moved shared types into `src/types/assignment.ts` and imported `Assignment` as a type-only import.
-10. Extracted `AssignmentListItem` as a child component and learned props, object destructuring, default exports, and parent-to-child data flow.
-11. Installed MUI, configured a dark theme, and learned `ThemeProvider`, `CssBaseline`, `Stack`, `Paper`, `Typography`, `Chip`, `Button`, `TextField`, and `MenuItem`.
-12. Learned local state with `useState`, derived values, controlled inputs, form submission, `preventDefault`, and responsive MUI props.
-13. Learned immutable array/object updates, conditional rendering with `&&` and ternaries, callback props, and one-way data flow from parent state to child UI.
-14. Extracted `AssignmentForm`, learned `SubmitEvent<HTMLFormElement>`, and separated date storage from date display with a named utility export.
+### Current assignments feature
 
-## Verification history
+- `Assignment` is the typed model; `Status` is a string union: `Pending`, `In Progress`, or `Completed`.
+- `AssignmentForm` has local controlled-input state, validates a title, and asks the page to add an assignment through a callback prop.
+- `AssignmentListItem` renders assignment information, formatted date, status chip, and requests completion via a callback prop.
+- `AssignmentsPage` keeps `showCompleted` as local `useState`, derives `visibleAssignments`, and calls the setter from the shared atom to add/complete items immutably.
+- `AssignmentsAtom.ts` exports `assignmentAtom`, made with:
 
-- The Vite development server displayed the starter application and later the assignment list successfully.
-- `npm run lint` was clean after the assignment list and component extraction.
-- A production build was attempted once. Vite encountered a Windows `spawn EPERM` permission error while loading its configuration. This was not caused by the React code and has not been investigated further because development and linting were working.
+  ```ts
+  atomWithStorage<Assignment[]>('assignments', initialAssignments, undefined, {
+    getOnInit: true,
+  })
+  ```
 
-## Current next step
+  It uses the browser key `assignments`, persists JSON through `localStorage`, and reads saved values during atom initialisation. Keep atoms at module scope, not inside a component, because atom identity is an object reference and a component function runs again on each render.
+- `AppLayout` calls `useAtomValue(assignmentAtom)` and derives an open-assignment count. Adding or completing an assignment updates the page and header without prop drilling.
 
-Finish the current assignee-selector verification, then continue enhancing the local assignment workflow. Before introducing any new React primitive, library, or unfamiliar syntax, explain its purpose, data flow, syntax, and alternatives first. The user explicitly requested this after earlier gaps in the `useState` and conditional-rendering explanations.
+## State and data-management decisions
 
-## Longer-term learning roadmap
+Use the smallest fitting state mechanism. Do not adopt a library merely because it is available.
 
-1. Complete core React: components, props, events, local state, derived state, forms, conditional rendering, lifting state, composition, and effects.
-2. Improve local feature structure, validation, reusable shared UI, and routing.
-3. Learn client-state choices in practice: lifting state, Context, Jotai, then Redux Toolkit; compare their trade-offs with concrete features.
-4. Create the Azure Functions HTTP API and EF Core persistence.
-5. Learn raw `fetch`, then Axios clients and error handling.
-6. Learn current TanStack Query for server state: queries, mutations, caching, invalidation, loading/error UI, and optimistic updates.
-7. Integrate the frontend with the backend using Axios and TanStack Query, keeping server state out of client-state stores by default.
-8. Add webhooks and activity/status updates.
-9. Optional Service Bus, authentication, localisation, testing, deployment, and accessibility review.
+| Concern | First choice | When to move on |
+| --- | --- | --- |
+| Component-local UI state | `useState` | State used only by one component or close descendants, e.g. form fields and `showCompleted`. |
+| Nearby shared state | Lift state to the nearest common parent; consider Context plus `useReducer` | Use when the sharing boundary remains a clear subtree. |
+| Shared client/UI state | Jotai | Small independent state that several distant components need, e.g. the local assignment list and layout count. |
+| Complex, coordinated global client state | Redux Toolkit | Explicit actions/reducers, predictable transitions, DevTools, and consistent team conventions are valuable. Learn it next. |
+| Server state | TanStack Query | API data, caching, loading/error states, mutations, invalidation, refetching, and optimistic updates. Do not copy ordinary server data into Jotai or Redux by default. |
+| HTTP transport | Native `fetch`, then Axios | Learn both. Use Axios when its client instance, interceptors, transformations, or error model add value. |
+
+Jotai is a state-management library built around small atom definitions, a store, and React subscriptions. `useAtom` reads/writes; `useAtomValue` reads without receiving a setter. A Jotai atom is live client state; `localStorage` is persistence across refreshes.
+
+## Next milestone: Redux Toolkit
+
+The Jotai milestone is complete and was committed as `29f0a7b shared assignments with jotai`.
+
+The next chat should start Redux Toolkit deliberately, not immediately rewrite the working assignment list. First explain the relationship between the Redux store, `Provider`, slices, actions, reducers, selectors, `useDispatch`, and `useSelector`.
+
+Then install `@reduxjs/toolkit` and `react-redux` from `client/` and create a **separate, bounded learning feature** for shared UI preferences—recommended first example: assignment-view density (`comfortable` versus `compact`). The layout can control the preference while assignment items read it. This demonstrates Redux sharing without having Jotai and Redux own the same assignment data.
+
+Do not migrate `assignmentAtom` into Redux merely to demonstrate syntax. After the Redux exercise, compare Jotai atoms with Redux slices/reducers and decide which mechanism should remain for each client-state concern.
+
+## Visual/product direction
+
+On 2026-11-26 the user supplied a WorkAssignment screenshot as a visual reference. The target is a neutral work-management application with a similarly professional, information-dense feel—not a visual or functional copy.
+
+### Preserve these broad patterns
+
+- application shell: top app bar plus navigation, responsive on smaller screens;
+- strong page title and compact, clearly separated content regions;
+- tabbed search modes where the feature warrants them;
+- filter/search controls above the work list;
+- status-first work records, selection, bulk actions, dense table/list layouts, and accessible visual hierarchy;
+- Material UI components and a responsive design, not hard-coded desktop dimensions.
+
+### Do not copy
+
+- Rio Tinto branding, logo, colours, terminology, user name, account/authentication experience, proprietary business data, assets, or code;
+- company-specific plant/work-centre/work-order semantics unless intentionally replaced with neutral learning-domain equivalents;
+- the full WorkAssignment feature set or its complex component/state structure.
+
+### Incremental UI plan
+
+1. Keep the present neutral MUI application shell while learning state management.
+2. After Redux basics, improve the shell deliberately: responsive top bar, neutral icon-based navigation, and theme tokens. Explain each layout decision.
+3. Build a small, generic assignment search/filter experience with local mock data. Introduce tabs, controlled filters, and accessible labels one at a time.
+4. Introduce a compact work-list/table view. WorkAssignment uses commercial `DataGridPro`; this project should use simple MUI layout first, then evaluate free `@mui/x-data-grid` only when a concrete grid feature needs it. Do not require a Pro licence.
+5. Add selection, bulk actions, column/density preferences, and advanced filters only when their state/API implications can be taught clearly.
+6. Replace mock data with the backend and TanStack Query later. Preserve the neutral domain and visual system.
+
+Relevant WorkAssignment source references, inspected on 2026-11-26:
+
+- `WorkAssignmentReact/src/pages/WorkAssignmentPage.tsx` composes a header/filter section and a grid.
+- `WorkAssignmentReact/src/components/WorkAssignmnetGrid/WorkAssignmentHeader.tsx` shows tabs, autocomplete filters, date-range controls, search, and clear actions.
+- `WorkAssignmentReact/src/components/WorkAssignmnetGrid/WorkAssignmentGrid.tsx` shows the grid toolbar, quick filter, selection, bulk actions, density, and column controls.
+- `WorkAssignmentReact/src/App.tsx` and layout components demonstrate its app shell, but should not be copied as this learning project's architecture.
+
+## Concepts covered
+
+1. Vite + React + TypeScript project creation, files, npm packages, ESLint, and the execution path from `index.html` to `main.tsx` and `App`.
+2. Components, JSX, props, TypeScript interfaces/types/string unions, default and named exports, list rendering, and React keys.
+3. Local React state with `useState`, controlled forms, `preventDefault`, immutable updates, derived values, conditional rendering, callback props, and `useEffect` persistence.
+4. MUI theme/provider/baseline plus `Stack`, `Paper`, `Typography`, `TextField`, `MenuItem`, `Button`, and `Chip`.
+5. Date storage versus display formatting and a named utility export.
+6. React Router: `BrowserRouter`, `Routes`, `Route`, `Navigate`, nested/layout routes, `Outlet`, `Link`, `useLocation`, active navigation styling, and wildcard/not-found routes.
+7. Feature-oriented organisation: assignment-specific UI/types/state/utilities are colocated under `features/assignments`.
+8. Jotai: module-level atom identity, `atomWithStorage`, `useAtom`, `useAtomValue`, `localStorage` initialisation, and sharing assignment state between a page and layout.
+9. The conceptual distinction among local state, Jotai, Redux Toolkit, TanStack Query, native `fetch`, and Axios.
+
+## Verification and known notes
+
+- The application has been run in Vite during the learning sessions.
+- `npm run lint` and `npx tsc -b` were clean after routing, feature organisation, and Jotai work.
+- A historical production build attempt hit a Windows Vite `spawn EPERM` while loading configuration. It was not traced to React code and should only be revisited if it recurs.
+- Run `git diff --check` before commits. It previously caught simple trailing whitespace.
+
+## Git history relevant to the current baseline
+
+- `29f0a7b shared assignments with jotai`
+- `15b0aa7 organize assignemtn code by feature`
+- `e27796b add routing improvements`
+- `3da7e17 add routing and shared layouts and about page`
+- `8d6cc0f persist local storage`
 
 ## Session updates
 
-### 2026-09-21 — expanded learning requirements
+### 2026-11-26 — documentation handoff and visual direction
 
-- The user asked to explicitly include sound React structure, Jotai, Redux Toolkit, Axios, TanStack Query/React Query, and the rationale for choosing among them.
-- State-management guidance was added: local state first, shared client state only when needed, and server state handled by TanStack Query rather than copied into Redux/Jotai by default.
-- The learning project will use WorkAssignment to identify workplace technologies, but will not imitate its structure as a best-practice template.
+- README and this log were refreshed to reflect the current routed, feature-oriented, Jotai-enabled client and the clean commit baseline.
+- Added the explicit required new-chat routine and documentation-maintenance contract so a future chat can continue without relying on conversation history.
+- Recorded the next Redux Toolkit learning milestone: use a separate shared UI-preference feature rather than duplicating assignment ownership across Jotai and Redux.
+- Recorded a neutral, staged visual direction inspired by the WorkAssignment screenshot and inspected source patterns. The goal is a professional work-management feel; corporate branding, proprietary data, and WorkAssignment's structure/code must not be copied.
+
+### 2026-11-26 — documentation-maintenance clarification
+
+- Clarified that future AI assistants must update the handoff documentation proactively before recommending a meaningful milestone commit; they must not wait for the user to request it.
 
 ## Log update format
 
-When this document is updated, preserve the current state and add a short dated entry under a new `## Session updates` heading. Each entry should note what changed, what was verified, important decisions, and the exact next task.
+Add a dated entry under **Session updates** that includes:
+
+- what changed;
+- what was verified;
+- decisions or trade-offs made;
+- the exact next task.
