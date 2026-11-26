@@ -1,14 +1,23 @@
 import { AppBar, Toolbar, Typography, Stack, Button } from '@mui/material';
 import { Link, Outlet, useLocation } from 'react-router';
+import { useAtomValue } from 'jotai'
+import { assignmentAtom } from '../features/assignments/state/AssignmentsAtom'
 
 export default function AppLayout() {
     const location = useLocation();
+    const assignments = useAtomValue(assignmentAtom);
+    const openAssignmentsCount = assignments.filter(
+        (assignment) => assignment.status !== 'Completed'
+    ).length;
     return (
         <>
             <AppBar position="static">
                 <Toolbar>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         Work Assignment Manager
+                    </Typography>
+                    <Typography variant="body2" component="div" sx={{ mr: 2 }}>
+                        Open Assignments: {openAssignmentsCount}
                     </Typography>
                         <Stack direction="row" spacing={2}> 
                         <Button component={Link} to="/assignments" color="inherit" sx={{ fontWeight: location.pathname === '/assignments' ? 700 : 400 }}>

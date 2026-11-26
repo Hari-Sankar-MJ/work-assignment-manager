@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useAtom } from 'jotai'
+import { assignmentAtom } from '../features/assignments/state/AssignmentsAtom'
 import type { Assignment } from '../features/assignments/types/assignment'
 import AssignmentListItem from '../features/assignments/components/AssignmentListItem'
 import Container from '@mui/material/Container'
@@ -7,47 +9,9 @@ import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import AssignmentForm from '../features/assignments/components/AssignmentForm'
 
-const initialAssignments: Assignment[] = [
-  {
-    id: 1,
-    title: "Fix leaky faucet",
-    assignee: "John Doe",
-    status: "Completed",
-    dueDate: "2024-06-30"
-  },
-  {
-    id: 2,
-    title: "Replace air filters",
-    assignee: "Jane Smith",
-    status: "In Progress",
-    dueDate: "2024-07-05"
-  },
-  {
-    id: 3,
-    title: "Clean gutters",
-    assignee: "Alice Johnson",
-    status: "Completed",
-    dueDate: "2024-07-10"
-  }
-]
-
-function loadAssignments() {
-  const localAssignments = localStorage.getItem('assignments')
-  try{
-    return localAssignments ? JSON.parse(localAssignments) : initialAssignments
-  }
-  catch (error) {
-    console.error("Failed to load assignments from localStorage", error)
-  }
-  return initialAssignments
-}
-
 function AssignmentsPage() {
   const [showCompleted, setShowCompleted] = useState(true)
-  const [assignments, setAssignments] = useState<Assignment[]>(loadAssignments)
-  useEffect(() => {
-    localStorage.setItem('assignments', JSON.stringify(assignments))
-  }, [assignments])
+  const [assignments, setAssignments] = useAtom(assignmentAtom)
   const visibleAssignments = showCompleted ? assignments : assignments.filter(assignment => assignment.status !== "Completed")
   
   function handleAddAssignment(title: string, assignee: string) {
